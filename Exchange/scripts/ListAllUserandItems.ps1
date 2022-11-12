@@ -1,0 +1,1 @@
+Get-MailboxDatabase | Get-MailboxStatistics | Sort totalitemsize -desc | ft displayname, totalitemsize, itemcount

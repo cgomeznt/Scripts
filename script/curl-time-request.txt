@@ -1,0 +1,2 @@
+
+curl -so /dev/null -w '%{time_total}\n' www.credicard.com.ve

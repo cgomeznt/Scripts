@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# https://10.124.2.150:8245/services/ValevenPrepagoMovimientoService?wsdl
+# http://10.124.2.152:9720/ReseteoPinService/services/reseteo_pin?wsdl
+
+HOSTNAME=$(hostname -s)
+RUTA="/usr/local/bin"
+PROXYS="listar_url_proxys.sh"
+WS="listar_url_ws.sh"
+COD_URL="200 OK"
+
+function send_zabbix {
+        zabbix_sender  -z 10.133.0.54 -s $HOSTNAME  -k "$1" -o $2 2>&1 > /dev/null
+}
+
+function status_proxys {
+        for i in $($RUTA/$PROXYS)
+        do
+                STATUS_PROXY=$(curl -s --head --insecure "$i" | grep -i "$COD_URL" | wc -l)
+                PROXY=$(echo $i | awk -F"/" '{print $5}' | awk -F"?" '{print $1}')
+                #echo "$i $STATUS_PROXY"
+                if [ $STATUS_PROXY -eq 0 ] ; then
+                        echo "NO esta activo el Proxy $PROXY con la URL $i $STATUS_PROXY"
+                        send_zabbix "proxy[$PROXY]" $STATUS_PROXY
+                else
+                        echo "Activo el Proxy $PROXY con la URL $i $STATUS_PROXY"
+                        send_zabbix "proxy[$PROXY]" $STATUS_PROXY
+                fi
+        done
+}
+
+function status_ws {
+        for i in $($RUTA/$WS)
+        do
+                STATUS_WS=$(wget --header="Content-Type: text/xml"  --no-cache $i 2>&1 | grep -i "$COD_URL"  | wc -l)
+                WS=$(echo $i | awk -F"/" '{print $4}' | awk -F"?" '{print $1}')
+                rm -rf $RUTA/*\?wsdl*
+                #echo "$i $STATUS_WS"
+                if [ $STATUS_WS -eq 0 ] ; then
+                        echo "NO esta activo el WS $i $STATUS_PROXY"
+                        send_zabbix ws[$WS] $STATUS_WS
+                else
+                        echo "Activo el WS $i $STATUS_PROXY"
+                        send_zabbix ws[$WS] $STATUS_WS
+                fi
+        done
+}
+
+function status_service {
+        STATUS_SERVICE=$(systemctl status integrator.service | grep -w Active | grep running | wc -l)
+        if [ $STATUS_SERVICE -eq 0 ] ; then
+                echo "NO esta activo el Servicio de WSO2"
+                send_zabbix status.service $STATUS_SERVICE
+        else
+                echo "Activo el Servicio de WSO2"
+                send_zabbix status.service $STATUS_SERVICE
+        fi
+}
+
+$1
+
+=========================================================
+
+esto es el crontab.
+
+
+#Monitoreo de los Web Services y de los Proxys
+#Coordinacion Soporte Web
+
+*/5 * * * * root /bin/bash /usr/local/bin/status_discover_proxy_ws.sh status_proxys 2>&1 > /dev/null
+*/5 * * * * root /bin/bash /usr/local/bin/status_discover_proxy_ws.sh status_ws 2>&1 > /dev/null
+*/5 * * * * root /bin/bash /usr/local/bin/status_discover_proxy_ws.sh status_service 2>&1 > /dev/null

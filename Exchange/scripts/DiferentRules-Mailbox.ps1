@@ -1,0 +1,1 @@
+get-mailbox -ResultSize Unlimited | where {$_.UseDatabaseQuotaDefaults -ne $true} 

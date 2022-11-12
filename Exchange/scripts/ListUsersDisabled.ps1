@@ -1,0 +1,1 @@
+Get-User -RecipientTypeDetails UserMailbox -ResultSize Unlimited | where {$_.UseraccountControl -like “*accountdisabled*”} | Select-Object DisplayName,WindowsEmailAddress,UserAccountControl

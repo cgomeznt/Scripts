@@ -1,0 +1,1 @@
+Get-Mailbox -Database $args[0] | Get-MailboxStatistics | %{$_.TotalItemSize.Value.ToMB()} | Measure-Object -sum -average -max -min

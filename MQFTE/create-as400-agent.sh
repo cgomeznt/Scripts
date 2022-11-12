@@ -1,0 +1,55 @@
+#!/bin/bash
+
+CHANNEL="SYSTEM.ADMIN.SVRCONN"
+DEF_AGENT_FTE="/usr/local/bin/agent_def.sh"
+HOST=`hostname -s`
+EXIST=`dspmq | grep $AS400_CLIENT | wc -l`
+AGENT_NAME="CRC03AGN1.AG"
+
+
+if [ `dspmq | grep $COORDINATOR | wc -l` == 0 ]
+then
+        echo "Coordintaror does not exist. Please execute create-coordinator.sh first."
+        exit 1
+fi
+
+
+if [ `dspmq | grep $COMMANDER | wc -l` == 0 ]
+then
+        echo "Commander does not exist. Please execute create-commander.sh first."
+        exit 1
+fi
+
+
+
+if [ "$EXIST" == "0" ]
+then 
+
+	crtmqm -c "AS400_Agent" $AS400_CLIENT
+	strmqm $AS400_CLIENT
+	runmqsc $AS400_CLIENT << EOF
+		DEFINE LISTENER ($AS400_CLIENT.LST) TRPTYPE (TCP) CONTROL (QMGR) PORT ($AS400_CLIENT_PORT)
+		START LISTENER ($AS400_CLIENT.LST)
+		DEFINE CHANNEL ($CHANNEL) CHLTYPE (SVRCONN)
+		START CHANNEL ($CHANNEL)
+		DEFINE QLOCAL ($AS400_CLIENT.DQ) USAGE (NORMAL)
+		ALTER QMGR DEADQ($AS400_CLIENT.DQ)
+		ALTER QMGR  CHLAUTH(DISABLED)
+		SET CHLAUTH(*)  TYPE(BLOCKUSER) USERLIST(*MQADMIN) ACTION(REMOVE)
+		SET CHLAUTH(SYSTEM.*) TYPE(ADDRESSMAP) ADDRESS(*) USERSRC(CHANNEL) ACTION(REPLACE)
+		SET CHLAUTH(*)  TYPE(ADDRESSMAP) ADDRESS(*)  USERSRC(CHANNEL) ACTION(ADD)
+                ALTER AUTHINFO('SYSTEM.DEFAULT.AUTHINFO.IDPWOS') AUTHTYPE(IDPWOS) CHCKCLNT(NONE)
+		ALTER CHANNEL(SYSTEM.ADMIN.SVRCONN) CHLTYPE(SVRCONN) MCAUSER('usrmq')
+		ALTER CHANNEL(SYSTEM.DEF.SVRCONN) CHLTYPE(SVRCONN) MCAUSER('usrmq')
+                REFRESH SECURITY TYPE(CONNAUTH)
+		
+EOF
+
+
+	$DEF_AGENT_FTE $AS400_CLIENT $AGENT_NAME
+
+else
+	echo "El QManager $AS400_CLIENT ya existe."
+	exit 1
+
+fi

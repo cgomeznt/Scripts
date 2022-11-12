@@ -1,0 +1,1 @@
+Get-MoveRequest -MoveStatus Completed | Remove-MoveRequest

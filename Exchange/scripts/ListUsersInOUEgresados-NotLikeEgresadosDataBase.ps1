@@ -1,0 +1,1 @@
+Get-MailboxDatabase | where {$_.Name -notlike "Egresados"} | Get-Mailbox  -OrganizationalUnit Egresados | get-mailboxstatistics | ft DisplayName,TotalItemSize,Itemcount

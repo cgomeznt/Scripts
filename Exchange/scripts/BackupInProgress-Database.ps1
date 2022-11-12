@@ -1,0 +1,1 @@
+Get-MailboxDatabase -Identity $args[0] -Status | fl backupinprogress

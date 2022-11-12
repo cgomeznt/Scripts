@@ -1,0 +1,1 @@
+Get-MailboxDatabase -Status | ft name,databasesize,availablenewmailboxspace,Server –auto

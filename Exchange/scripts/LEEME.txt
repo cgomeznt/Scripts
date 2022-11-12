@@ -1,0 +1,3 @@
+Scripts para el mantenimiento y monitoreo del Exchange.
+
+Mayor informacion, consultar a Soporte de Aplicaciones en Línea.

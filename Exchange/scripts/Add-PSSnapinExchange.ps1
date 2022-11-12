@@ -1,0 +1,1 @@
+Add-PSSnapin Microsoft.Exchange.Management.PowerShell.E2010

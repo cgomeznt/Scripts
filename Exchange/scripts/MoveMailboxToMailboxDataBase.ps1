@@ -1,0 +1,1 @@
+Get-Mailbox -Database $args[0] | New-MoveRequest -BadItemLimit 100 -AcceptLargeDataLoss -TargetDatabase $args[1]

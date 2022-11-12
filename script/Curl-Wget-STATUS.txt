@@ -1,0 +1,7 @@
+curl --fail -LI http://google.com -o /dev/null -w '%{http_code}\n' -s
+
+
+curl -s --head --insecure "$i" | grep -i "200 OK""-l
+
+
+wget --header="Content-Type: text/xml"  --no-cache http://10.124.2.152:9720/ActivacionTarjetaCreditoService/services/activacion_tarjeta_credito?wsdl 2>&1 | grep -i "200 OK"  | wc -l
